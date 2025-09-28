@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TopNav } from "@/components/navigation/top-nav";
-import { Settings, Search, Users, FileText, UserPlus } from "lucide-react";
+import { Settings, Search, UserPlus, FileText, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -73,33 +73,33 @@ const Home = () => {
         </div>
 
         {/* Main Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* New Patient Registration */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Input Medical Record */}
           <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-medical-red-light rounded-lg">
-                  <UserPlus className="h-6 w-6 text-medical-red" />
+                  <PlusCircle className="h-6 w-6 text-medical-red" />
                 </div>
                 <div>
                   <CardTitle className="text-xl text-foreground">
-                    New Patient Registration
+                    Input Patient Medical Record
                   </CardTitle>
                 </div>
               </div>
               <CardDescription className="text-muted-foreground pt-2">
-                Register new patient and create their initial medical record
+                Add or update patient medical records after searching with NIK
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button
                 variant="medical"
-                onClick={() => navigate("/new-patient")}
+                onClick={() => navigate("/add-record")}
                 className="w-full"
                 size="lg"
               >
-                <UserPlus className="h-5 w-5 mr-2" />
-                Register New Patient
+                <PlusCircle className="h-5 w-5 mr-2" />
+                Add Record
               </Button>
             </CardContent>
           </Card>
@@ -135,37 +135,6 @@ const Home = () => {
           </Card>
         </div>
 
-        {/* Quick Access Section */}
-        <div className="mt-12">
-          <Card className="bg-medical-red-light border-medical-red/20">
-            <CardHeader>
-              <CardTitle className="text-foreground">Quick Access</CardTitle>
-              <CardDescription>
-                Frequently used features for health facilitators
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button variant="medical-ghost" className="h-auto py-4 px-6 flex-col space-y-2">
-                  <FileText className="h-6 w-6" />
-                  <span className="text-sm">New Record</span>
-                </Button>
-                <Button variant="medical-ghost" className="h-auto py-4 px-6 flex-col space-y-2">
-                  <Search className="h-6 w-6" />
-                  <span className="text-sm">Quick Search</span>
-                </Button>
-                <Button variant="medical-ghost" className="h-auto py-4 px-6 flex-col space-y-2">
-                  <Users className="h-6 w-6" />
-                  <span className="text-sm">Patient List</span>
-                </Button>
-                <Button variant="medical-ghost" className="h-auto py-4 px-6 flex-col space-y-2">
-                  <Settings className="h-6 w-6" />
-                  <span className="text-sm">Settings</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </main>
     </div>
   );
