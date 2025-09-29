@@ -103,15 +103,6 @@ const Login = () => {
                 >
                   Forgot Password
                 </Button>
-
-                <Button
-                  type="button"
-                  variant="medical-ghost"
-                  onClick={handleCreateAccount}
-                  className="w-full"
-                >
-                  Create Account
-                </Button>
               </div>
             </div>
           </form>
