@@ -33,9 +33,9 @@ const medicalRecordSchema = z.object({
   vitals: z.object({
     date: z.date({ required_error: "Vitals date is required" }),
     time: z.string().min(1, "Time is required"),
-    bloodPressure: z.string().min(1),
-    heartRate: z.string().min(1),
-    temperature: z.string().min(1),
+    bp: z.string().min(1),
+    hr: z.string().min(1),
+    temp: z.string().min(1),
     weight: z.string().min(1),
     height: z.string().min(1),
   }),
@@ -43,9 +43,9 @@ const medicalRecordSchema = z.object({
   // Lab Results
   labResults: z.object({
     date: z.date({ required_error: "Lab date is required" }),
-    testName: z.string().min(1),
+    test: z.string().min(1),
     result: z.string().min(1),
-    referenceRange: z.string().min(1),
+    reference: z.string().min(1),
     status: z.string().min(1),
   }),
 
@@ -63,7 +63,7 @@ const medicalRecordSchema = z.object({
     date: z.date({ required_error: "Consultation date is required" }),
     doctor: z.string().min(1),
     specialty: z.string().min(1),
-    chiefComplaint: z.string().min(1),
+    chief_complaint: z.string().min(1),
     assessment: z.string().min(1),
     plan: z.string().min(1),
   }),
@@ -73,7 +73,7 @@ const medicalRecordSchema = z.object({
     date: z.date({ required_error: "Disposition date is required" }),
     status: z.string().min(1),
     instructions: z.string().min(1),
-    nextAppointment: z.date().optional(),
+    next_appointment: z.date().optional(),
   }),
 });
 
@@ -415,7 +415,7 @@ export default function InputMedicalRecord() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="vitals.bloodPressure"
+                    name="vitals.bp"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Blood Pressure (mmHg)</FormLabel>
@@ -429,7 +429,7 @@ export default function InputMedicalRecord() {
 
                   <FormField
                     control={form.control}
-                    name="vitals.heartRate"
+                    name="vitals.hr"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Heart Rate (bpm)</FormLabel>
@@ -443,7 +443,7 @@ export default function InputMedicalRecord() {
 
                   <FormField
                     control={form.control}
-                    name="vitals.temperature"
+                    name="vitals.temp"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Temperature (°C)</FormLabel>
@@ -537,7 +537,7 @@ export default function InputMedicalRecord() {
 
                   <FormField
                     control={form.control}
-                    name="labResults.testName"
+                    name="labResults.test"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Test Name</FormLabel>
@@ -567,7 +567,7 @@ export default function InputMedicalRecord() {
 
                   <FormField
                     control={form.control}
-                    name="labResults.referenceRange"
+                    name="labResults.reference"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Reference Range</FormLabel>
@@ -791,7 +791,7 @@ export default function InputMedicalRecord() {
 
                 <FormField
                   control={form.control}
-                  name="consultationNotes.chiefComplaint"
+                  name="consultationNotes.chief_complaint"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Chief Complaint</FormLabel>
@@ -921,7 +921,7 @@ export default function InputMedicalRecord() {
 
                 <FormField
                   control={form.control}
-                  name="disposition.nextAppointment"
+                  name="disposition.next_appointment"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Next Appointment (Optional)</FormLabel>
