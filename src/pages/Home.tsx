@@ -27,7 +27,6 @@ const Home = () => {
       <TopNav />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Welcome to EMR Dashboard
@@ -37,7 +36,6 @@ const Home = () => {
           </p>
         </div>
 
-        {/* NIK Search Section */}
         <div className="mb-8">
           <Card className="shadow-md border-l-4 border-l-medical-red">
             <CardHeader>
@@ -72,9 +70,7 @@ const Home = () => {
           </Card>
         </div>
 
-        {/* Main Action Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Medical Record */}
           <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-4">
               <div className="flex items-center space-x-3">
@@ -104,7 +100,6 @@ const Home = () => {
             </CardContent>
           </Card>
 
-          {/* Admin Settings */}
           <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-4">
               <div className="flex items-center space-x-3">

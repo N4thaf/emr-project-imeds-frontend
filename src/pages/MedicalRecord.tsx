@@ -37,7 +37,6 @@ const MedicalRecord = () => {
     }
   }, [data, nikParams])
 
-  console.log(JSON.stringify(data))
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
