@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Save, X } from "lucide-react";
+import { CalendarIcon, Save, Search, User, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TopNav } from "@/components/navigation/top-nav";
@@ -16,119 +16,201 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { usePatient } from "@/hooks/use-patient";
+import { Label } from "@/components/ui/label";
+import { PatientData } from "..";
 
 const medicalRecordSchema = z.object({
-  // Personal Info
-  name: z.string().min(1, "Name is required"),
-  nik: z.string().min(16, "NIK must be 16 digits").max(16, "NIK must be 16 digits"),
-  birthDate: z.date({ required_error: "Birth date is required" }),
-  gender: z.string().min(1, "Gender is required"),
-  address: z.string().min(1, "Address is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  
   // Diagnosis
-  diagnosisDate: z.date({ required_error: "Diagnosis date is required" }),
-  diagnosis: z.string().min(1, "Diagnosis is required"),
-  icd10Code: z.string().min(1, "ICD-10 code is required"),
-  doctor: z.string().min(1, "Doctor name is required"),
+  diagnosis: z.object({
+    date: z.date({ required_error: "Diagnosis date is required" }),
+    diagnosis: z.string().min(1, "Diagnosis is required"),
+    icd10: z.string().min(1, "ICD-10 code is required"),
+    doctor: z.string().min(1, "Doctor name is required"),
+  }),
   
   // Vitals
-  vitalsDate: z.date({ required_error: "Vitals date is required" }),
-  vitalsTime: z.string().min(1, "Time is required"),
-  bloodPressure: z.string().min(1, "Blood pressure is required"),
-  heartRate: z.string().min(1, "Heart rate is required"),
-  temperature: z.string().min(1, "Temperature is required"),
-  weight: z.string().min(1, "Weight is required"),
-  height: z.string().min(1, "Height is required"),
-  
+  vitals: z.object({
+    date: z.date({ required_error: "Vitals date is required" }),
+    time: z.string().min(1, "Time is required"),
+    bloodPressure: z.string().min(1),
+    heartRate: z.string().min(1),
+    temperature: z.string().min(1),
+    weight: z.string().min(1),
+    height: z.string().min(1),
+  }),
+
   // Lab Results
-  labDate: z.date({ required_error: "Lab date is required" }),
-  testName: z.string().min(1, "Test name is required"),
-  result: z.string().min(1, "Result is required"),
-  referenceRange: z.string().min(1, "Reference range is required"),
-  status: z.string().min(1, "Status is required"),
-  
+  labResults: z.object({
+    date: z.date({ required_error: "Lab date is required" }),
+    testName: z.string().min(1),
+    result: z.string().min(1),
+    referenceRange: z.string().min(1),
+    status: z.string().min(1),
+  }),
+
   // Treatments
-  treatmentDate: z.date({ required_error: "Treatment date is required" }),
-  medication: z.string().min(1, "Medication is required"),
-  dosage: z.string().min(1, "Dosage is required"),
-  duration: z.string().min(1, "Duration is required"),
-  treatmentDoctor: z.string().min(1, "Doctor name is required"),
-  
+  treatments: z.object({
+    date: z.date({ required_error: "Treatment date is required" }),
+    medication: z.string().min(1),
+    dosage: z.string().min(1),
+    duration: z.string().min(1),
+    doctor: z.string().min(1),
+  }),
+
   // Consultation Notes
-  consultationDate: z.date({ required_error: "Consultation date is required" }),
-  consultationDoctor: z.string().min(1, "Doctor name is required"),
-  specialty: z.string().min(1, "Specialty is required"),
-  chiefComplaint: z.string().min(1, "Chief complaint is required"),
-  assessment: z.string().min(1, "Assessment is required"),
-  plan: z.string().min(1, "Plan is required"),
-  
+  consultationNotes: z.object({
+    date: z.date({ required_error: "Consultation date is required" }),
+    doctor: z.string().min(1),
+    specialty: z.string().min(1),
+    chiefComplaint: z.string().min(1),
+    assessment: z.string().min(1),
+    plan: z.string().min(1),
+  }),
+
   // Disposition
-  dispositionDate: z.date({ required_error: "Disposition date is required" }),
-  dispositionStatus: z.string().min(1, "Status is required"),
-  instructions: z.string().min(1, "Instructions are required"),
-  nextAppointment: z.date().optional(),
+  disposition: z.object({
+    date: z.date({ required_error: "Disposition date is required" }),
+    status: z.string().min(1),
+    instructions: z.string().min(1),
+    nextAppointment: z.date().optional(),
+  }),
 });
 
 type MedicalRecordFormData = z.infer<typeof medicalRecordSchema>;
 
-const InputMedicalRecord = () => {
-  const navigate = useNavigate();
+export default function InputMedicalRecord() {
+  const [nik, setNik] = useState("");
+  const [showRecord, setShowRecord] = useState(false);
+  const [patientData, setPatentData] = useState<PatientData | null>(null)
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [formLoading, setFormLoading] = useState(false);
+
+  const { data, loading, error, fetchPatient } = usePatient();
   
   const form = useForm<MedicalRecordFormData>({
-    resolver: zodResolver(medicalRecordSchema),
-    defaultValues: {
-      name: "",
-      nik: "",
-      gender: "",
-      address: "",
-      phone: "",
-      diagnosis: "",
-      icd10Code: "",
-      doctor: "",
-      vitalsTime: "",
-      bloodPressure: "",
-      heartRate: "",
-      temperature: "",
-      weight: "",
-      height: "",
-      testName: "",
-      result: "",
-      referenceRange: "",
-      status: "",
-      medication: "",
-      dosage: "",
-      duration: "",
-      treatmentDoctor: "",
-      consultationDoctor: "",
-      specialty: "",
-      chiefComplaint: "",
-      assessment: "",
-      plan: "",
-      dispositionStatus: "",
-      instructions: "",
-    },
+    resolver: zodResolver(medicalRecordSchema)
   });
 
-  const onSubmit = (data: MedicalRecordFormData) => {
-    console.log("Medical record data:", data);
-    toast({
-      title: "Medical Record Saved",
-      description: "Patient medical record has been successfully saved.",
-    });
-    navigate("/home");
+  const onSubmit = async (data: MedicalRecordFormData) => {
+	setFormLoading(true);
+	let status = 0;
+	try {
+ 		const res = await fetch(`https://emr-project-imeds-backend.vercel.app/api/pasien/${nik}`, {
+          method: "POST",
+          headers: {
+          	"Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+			  diagnosis: data.diagnosis, 
+			  vitals: data.vitals, 
+			  labResults: data.labResults, 
+			  treatments: data.treatments, 
+			  consultationNotes: data.consultationNotes, 
+			  disposition: data.disposition 
+          }),
+        });
+
+  		if (!res.ok) {
+		  const err = await res.json();
+		  toast({
+			title: "Something Went Wrong",
+			description: err.message || "Failed to save medical record"		  
+		  })
+    	}
+	} catch(err) {
+		toast({
+			title: "Something Went Wrong",
+			description: "Something went wrong about this"
+		})
+	} finally {
+		if(status >= 300) {
+			toast({
+				title: "Something Went Wrong",
+				description: "Something went wrong about this"
+			})
+		} else {
+			setFormLoading(false);
+			toast({
+			  title: "Medical Record Saved",
+			  description: "Patient medical record has been successfully saved.",
+			});
+			navigate("/home");
+		}
+	}
   };
 
   const handleCancel = () => {
     navigate("/home");
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nik.length >= 10) {
+      fetchPatient(nik);
+
+    } else {
+      toast({
+        title: "Invalid NIK",
+        description: "Please enter a valid NIK (minimum 10 digits)",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+	  if(data !== null) {
+		  setPatentData(data)
+		  setShowRecord(true)
+
+      	  toast({
+        	title: "Patient Found",
+            description: `Medical record for NIK ${nik} loaded successfully`,
+          });
+	  }
+  }, [data])
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
       
       <main className="container mx-auto px-6 py-8 max-w-4xl">
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <Search className="h-6 w-6 text-medical-red" />
+              <div>
+                <CardTitle>Search Patient by NIK</CardTitle>
+                <CardDescription>
+                  Enter the National ID Number (NIK) to access patient medical records
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSearch} className="flex gap-4">
+              <div className="flex-1">
+                <Label htmlFor="nik" className="sr-only">NIK</Label>
+                <Input
+                  id="nik"
+                  type="text"
+                  placeholder="Enter NIK (e.g., 3201234567890123)"
+                  value={nik}
+                  onChange={(e) => setNik(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button type="submit" variant="medical" size="default">
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+		{(showRecord && !loading) && (
+		<>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Input Patient Medical Record</h1>
           <p className="text-muted-foreground">
@@ -137,138 +219,44 @@ const InputMedicalRecord = () => {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            
-            {/* Personal Information */}
-            <Card className="shadow-md">
+          <form onSubmit={formLoading ? (() => {}) : form.handleSubmit(onSubmit)} className="space-y-8">
+             <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-medical-red">Personal Information</CardTitle>
+                <div className="flex items-center space-x-3">
+                  <User className="h-6 w-6 text-medical-red" />
+                  <CardTitle>Patient Information</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter patient name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="nik"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>NIK (National ID)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter 16-digit NIK" maxLength={16} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
+                    <p className="text-lg font-semibold">{patientData.personalInfo.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">NIK</Label>
+                    <p className="text-lg font-semibold">{patientData.personalInfo.nik}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Birth Date</Label>
+                    <p className="text-lg">{patientData.personalInfo.birthDate}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
+                    <p className="text-lg">{patientData.personalInfo.gender}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
+                    <p className="text-lg">{patientData.personalInfo.phone}</p>
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <Label className="text-sm font-medium text-muted-foreground">Address</Label>
+                    <p className="text-lg">{patientData.personalInfo.address}</p>
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="birthDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Birth Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date > new Date()}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="gender"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select gender" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Enter complete address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
+
 
             {/* Diagnosis */}
             <Card className="shadow-md">
@@ -279,7 +267,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="diagnosisDate"
+                    name="diagnosis.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Diagnosis Date</FormLabel>
@@ -319,7 +307,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="doctor"
+                    name="diagnosis.doctor"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Doctor</FormLabel>
@@ -334,7 +322,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="diagnosis"
+                  name="diagnosis.diagnosis"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Diagnosis</FormLabel>
@@ -348,7 +336,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="icd10Code"
+                  name="diagnosis.icd10"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ICD-10 Code</FormLabel>
@@ -371,7 +359,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="vitalsDate"
+                    name="vitals.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Date</FormLabel>
@@ -411,7 +399,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="vitalsTime"
+                    name="vitals.time"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Time</FormLabel>
@@ -427,7 +415,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="bloodPressure"
+                    name="vitals.bloodPressure"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Blood Pressure (mmHg)</FormLabel>
@@ -441,7 +429,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="heartRate"
+                    name="vitals.heartRate"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Heart Rate (bpm)</FormLabel>
@@ -455,7 +443,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="temperature"
+                    name="vitals.temperature"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Temperature (°C)</FormLabel>
@@ -471,7 +459,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="weight"
+                    name="vitals.weight"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Weight (kg)</FormLabel>
@@ -485,7 +473,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="height"
+                    name="vitals.height"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Height (cm)</FormLabel>
@@ -509,7 +497,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="labDate"
+                    name="labResults.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Date</FormLabel>
@@ -549,7 +537,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="testName"
+                    name="labResults.testName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Test Name</FormLabel>
@@ -565,7 +553,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="result"
+                    name="labResults.result"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Result</FormLabel>
@@ -579,7 +567,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="referenceRange"
+                    name="labResults.referenceRange"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Reference Range</FormLabel>
@@ -593,7 +581,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="labResults.status"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
@@ -626,7 +614,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="treatmentDate"
+                    name="treatments.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Date</FormLabel>
@@ -666,7 +654,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="treatmentDoctor"
+                    name="treatments.doctor"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Doctor</FormLabel>
@@ -682,7 +670,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="medication"
+                    name="treatments.medication"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Medication</FormLabel>
@@ -696,7 +684,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="dosage"
+                    name="treatments.dosage"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Dosage</FormLabel>
@@ -710,7 +698,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="duration"
+                    name="treatments.duration"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Duration</FormLabel>
@@ -734,7 +722,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
-                    name="consultationDate"
+                    name="consultationNotes.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Date</FormLabel>
@@ -774,7 +762,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="consultationDoctor"
+                    name="consultationNotes.doctor"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Doctor</FormLabel>
@@ -788,7 +776,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="specialty"
+                    name="consultationNotes.specialty"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Specialty</FormLabel>
@@ -803,7 +791,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="chiefComplaint"
+                  name="consultationNotes.chiefComplaint"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Chief Complaint</FormLabel>
@@ -817,7 +805,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="assessment"
+                  name="consultationNotes.assessment"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assessment</FormLabel>
@@ -831,7 +819,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="plan"
+                  name="consultationNotes.plan"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Plan</FormLabel>
@@ -854,7 +842,7 @@ const InputMedicalRecord = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="dispositionDate"
+                    name="disposition.date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Date</FormLabel>
@@ -894,7 +882,7 @@ const InputMedicalRecord = () => {
 
                   <FormField
                     control={form.control}
-                    name="dispositionStatus"
+                    name="disposition.status"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
@@ -919,7 +907,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="instructions"
+                  name="disposition.instructions"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Instructions</FormLabel>
@@ -933,7 +921,7 @@ const InputMedicalRecord = () => {
 
                 <FormField
                   control={form.control}
-                  name="nextAppointment"
+                  name="disposition.nextAppointment"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Next Appointment (Optional)</FormLabel>
@@ -974,7 +962,6 @@ const InputMedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
             <div className="flex gap-4 justify-end pt-6">
               <Button
                 type="button"
@@ -986,6 +973,7 @@ const InputMedicalRecord = () => {
                 Cancel
               </Button>
               <Button
+			  	disabled={formLoading}
                 type="submit"
                 variant="medical"
                 className="px-8"
@@ -996,9 +984,9 @@ const InputMedicalRecord = () => {
             </div>
           </form>
         </Form>
+		</>
+      )}
       </main>
     </div>
   );
 };
-
-export default InputMedicalRecord;

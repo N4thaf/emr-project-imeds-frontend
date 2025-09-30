@@ -17,13 +17,10 @@ export const TopNav = () => {
     <nav className="bg-white border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo and Brand */}
           <div className="flex items-center space-x-3">
             <MedicalLogo size="sm" />
             <span className="text-xl font-semibold text-foreground">EMR System</span>
           </div>
-
-          {/* Navigation Links */}
           <div className="flex items-center space-x-4">
             <Button
               variant={isActive("/home") ? "medical" : "medical-ghost"}

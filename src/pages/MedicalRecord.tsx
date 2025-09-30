@@ -12,197 +12,6 @@ import { PatientData, PatientsData, PersonalInfo } from "..";
 import { useSearchParams } from "react-router-dom";
 import { usePatient } from "@/hooks/use-patient";
 
-const __patientsDataArray: PatientsData = [
-  {
-    personalInfo: {
-      name: "Budi Santoso",
-      nik: "3201234567890123",
-      birthDate: "1985-05-15",
-      gender: "Male",
-      address: "Jl. Merdeka No. 123, Jakarta Pusat",
-      phone: "081234567890",
-    },
-    diagnosis: [
-      { date: "2024-01-15", diagnosis: "Hypertension Stage 1", icd10: "I10", doctor: "Dr. Sarah Wijaya" },
-      { date: "2024-01-10", diagnosis: "Type 2 Diabetes Mellitus", icd10: "E11", doctor: "Dr. Ahmad Rahman" },
-    ],
-    vitals: [
-      { date: "2024-01-15", time: "10:30", bp: "140/90", hr: "78", temp: "36.5°C", weight: "72kg", height: "170cm" },
-      { date: "2024-01-10", time: "14:20", bp: "145/95", hr: "82", temp: "36.7°C", weight: "73kg", height: "170cm" },
-    ],
-    labResults: [
-      { date: "2024-01-12", test: "Fasting Blood Glucose", result: "145 mg/dL", reference: "70-99 mg/dL", status: "High" },
-      { date: "2024-01-12", test: "HbA1c", result: "7.2%", reference: "<5.7%", status: "High" },
-      { date: "2024-01-12", test: "Total Cholesterol", result: "220 mg/dL", reference: "<200 mg/dL", status: "High" },
-    ],
-    treatments: [
-      { date: "2024-01-15", medication: "Metformin 500mg", dosage: "2x daily", duration: "30 days", doctor: "Dr. Ahmad Rahman" },
-      { date: "2024-01-15", medication: "Amlodipine 5mg", dosage: "1x daily", duration: "30 days", doctor: "Dr. Sarah Wijaya" },
-    ],
-    consultationNotes: [
-      { 
-        date: "2024-01-15", 
-        doctor: "Dr. Sarah Wijaya", 
-        specialty: "Internal Medicine",
-        chief_complaint: "Headache and dizziness",
-        assessment: "Blood pressure well controlled with current medication. Patient reports occasional headaches.",
-        plan: "Continue current antihypertensive. Follow-up in 4 weeks."
-      },
-      { 
-        date: "2024-01-10", 
-        doctor: "Dr. Ahmad Rahman", 
-        specialty: "Endocrinology",
-        chief_complaint: "Routine diabetes follow-up",
-        assessment: "Blood glucose levels improving with metformin. No signs of complications.",
-        plan: "Continue metformin. Dietary counseling. HbA1c in 3 months."
-      },
-    ],
-    disposition: [
-      { date: "2024-01-15", status: "Discharged Home", instructions: "Continue medications as prescribed. Follow-up appointment in 4 weeks.", next_appointment: "2024-02-12" },
-      { date: "2024-01-10", status: "Discharged Home", instructions: "Dietary modifications. Monitor blood glucose daily.", next_appointment: "2024-02-07" },
-    ],
-  },
-  {
-    personalInfo: {
-      name: "Siti Aminah",
-      nik: "3278901234567890",
-      birthDate: "1990-08-20",
-      gender: "Female",
-      address: "Jl. Sudirman No. 45, Bandung",
-      phone: "082345678901",
-    },
-    diagnosis: [
-      { date: "2024-02-05", diagnosis: "Asthma", icd10: "J45", doctor: "Dr. Indra Putra" },
-    ],
-    vitals: [
-      { date: "2024-02-05", time: "09:00", bp: "120/80", hr: "85", temp: "36.8°C", weight: "58kg", height: "160cm" },
-    ],
-    labResults: [
-      { date: "2024-02-05", test: "Spirometry", result: "FEV1: 70%", reference: ">80%", status: "Low" },
-    ],
-    treatments: [
-      { date: "2024-02-05", medication: "Salbutamol Inhaler", dosage: "1-2 puffs as needed", duration: "30 days", doctor: "Dr. Indra Putra" },
-    ],
-    consultationNotes: [
-      {
-        date: "2024-02-05",
-        doctor: "Dr. Indra Putra",
-        specialty: "Pulmonology",
-        chief_complaint: "Shortness of breath at night",
-        assessment: "Asthma not well controlled. Needs inhaler use optimization.",
-        plan: "Prescribed salbutamol inhaler. Educated patient about usage technique.",
-      },
-    ],
-    disposition: [
-      { date: "2024-02-05", status: "Discharged Home", instructions: "Use inhaler as prescribed. Avoid triggers.", next_appointment: "2024-03-05" },
-    ],
-  },
-  {
-    personalInfo: {
-      name: "Agus Setiawan",
-      nik: "3214567890123456",
-      birthDate: "1978-11-10",
-      gender: "Male",
-      address: "Jl. Diponegoro No. 77, Yogyakarta",
-      phone: "081789012345",
-    },
-    diagnosis: [
-      { date: "2024-03-12", diagnosis: "Chronic Kidney Disease Stage 3", icd10: "N18.3", doctor: "Dr. Lina Hartati" },
-    ],
-    vitals: [
-      { date: "2024-03-12", time: "11:15", bp: "150/95", hr: "76", temp: "36.6°C", weight: "65kg", height: "168cm" },
-    ],
-    labResults: [
-      { date: "2024-03-12", test: "Serum Creatinine", result: "2.1 mg/dL", reference: "0.7-1.3 mg/dL", status: "High" },
-      { date: "2024-03-12", test: "eGFR", result: "45 mL/min", reference: ">60", status: "Low" },
-    ],
-    treatments: [
-      { date: "2024-03-12", medication: "Lisinopril 10mg", dosage: "1x daily", duration: "30 days", doctor: "Dr. Lina Hartati" },
-    ],
-    consultationNotes: [
-      {
-        date: "2024-03-12",
-        doctor: "Dr. Lina Hartati",
-        specialty: "Nephrology",
-        chief_complaint: "Fatigue and swelling on ankles",
-        assessment: "Stage 3 CKD with hypertension. Needs strict BP control.",
-        plan: "Start ACE inhibitor. Advise low-salt diet. Monitor renal function every 3 months.",
-      },
-    ],
-    disposition: [
-      { date: "2024-03-12", status: "Discharged Home", instructions: "Low-salt diet. Take medication daily.", next_appointment: "2024-04-12" },
-    ],
-  },
-  {
-    personalInfo: {
-      name: "Maria Clara",
-      nik: "3276543210987654",
-      birthDate: "2000-03-22",
-      gender: "Female",
-      address: "Jl. Gatot Subroto No. 88, Surabaya",
-      phone: "083212345678",
-    },
-    diagnosis: [
-      { date: "2024-04-01", diagnosis: "Migraine", icd10: "G43", doctor: "Dr. Rudi Santoso" },
-    ],
-    vitals: [
-      { date: "2024-04-01", time: "13:00", bp: "118/76", hr: "80", temp: "36.4°C", weight: "50kg", height: "162cm" },
-    ],
-    labResults: [],
-    treatments: [
-      { date: "2024-04-01", medication: "Sumatriptan 50mg", dosage: "as needed", duration: "10 days", doctor: "Dr. Rudi Santoso" },
-    ],
-    consultationNotes: [
-      {
-        date: "2024-04-01",
-        doctor: "Dr. Rudi Santoso",
-        specialty: "Neurology",
-        chief_complaint: "Severe headache with nausea",
-        assessment: "Migraine attacks once a week. Needs acute management.",
-        plan: "Prescribed sumatriptan. Advised to avoid known triggers.",
-      },
-    ],
-    disposition: [
-      { date: "2024-04-01", status: "Discharged Home", instructions: "Take medication as needed. Avoid stress and irregular sleep.", next_appointment: "2024-04-21" },
-    ],
-  },
-  {
-    personalInfo: {
-      name: "Dewi Lestari",
-      nik: "3265432109876543",
-      birthDate: "1965-12-05",
-      gender: "Female",
-      address: "Jl. Imam Bonjol No. 12, Semarang",
-      phone: "085678901234",
-    },
-    diagnosis: [
-      { date: "2024-05-10", diagnosis: "Osteoarthritis", icd10: "M19", doctor: "Dr. Bambang Prasetyo" },
-    ],
-    vitals: [
-      { date: "2024-05-10", time: "15:30", bp: "135/85", hr: "74", temp: "36.7°C", weight: "62kg", height: "158cm" },
-    ],
-    labResults: [
-      { date: "2024-05-10", test: "X-Ray Knee", result: "Joint space narrowing", reference: "Normal", status: "Abnormal" },
-    ],
-    treatments: [
-      { date: "2024-05-10", medication: "Paracetamol 500mg", dosage: "3x daily", duration: "14 days", doctor: "Dr. Bambang Prasetyo" },
-    ],
-    consultationNotes: [
-      {
-        date: "2024-05-10",
-        doctor: "Dr. Bambang Prasetyo",
-        specialty: "Orthopedics",
-        chief_complaint: "Knee pain when walking",
-        assessment: "Early osteoarthritis of the knee. Needs pain management and physiotherapy.",
-        plan: "Prescribed paracetamol. Referred to physiotherapy.",
-      },
-    ],
-    disposition: [
-      { date: "2024-05-10", status: "Discharged Home", instructions: "Take medication. Begin physiotherapy sessions.", next_appointment: "2024-05-24" },
-    ],
-  }
-];
-
 const MedicalRecord = () => {
   const [nik, setNik] = useState("");
   const [showRecord, setShowRecord] = useState(false);
@@ -227,6 +36,8 @@ const MedicalRecord = () => {
       });
     }
   }, [data, nikParams])
+
+  console.log(JSON.stringify(data))
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,7 +73,6 @@ const MedicalRecord = () => {
       <TopNav />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section */}
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center space-x-3">
@@ -296,10 +106,8 @@ const MedicalRecord = () => {
           </CardContent>
         </Card>
 
-        {/* Patient Record */}
         {(showRecord && !loading) && (
           <div className="space-y-6">
-            {/* Patient Information */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -337,7 +145,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Diagnosis */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -369,7 +176,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Vitals */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -405,7 +211,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Lab Results */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -441,7 +246,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Treatments */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -475,7 +279,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Consultation Notes */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -514,7 +317,6 @@ const MedicalRecord = () => {
               </CardContent>
             </Card>
 
-            {/* Disposition */}
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-3">
